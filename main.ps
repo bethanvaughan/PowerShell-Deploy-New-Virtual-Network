@@ -1,1 +1,54 @@
+# Interactive script to create an Azure Virtual Network (VNet) with optional subnets
+
+# Prompt the user for the resource group name and check if it exists
+$resourceGroupName = Read-Host "Enter the name of the Resource Group"
+$resourceGroup = Get-AzResourceGroup -Name $resourceGroupName -ErrorAction SilentlyContinue
+
+if ($null -eq $resourceGroup) {
+    Write-Host "Resource Group '$resourceGroupName' does not exist. Creating it now..."
+    $location = Read-Host "Enter the Azure region (e.g., uksouth, ukwest)"
+    New-AzResourceGroup -Name $resourceGroupName -Location $location
+    Write-Host "Resource Group '$resourceGroupName' created successfully."
+} else {
+    Write-Host "Resource Group '$resourceGroupName' already exists."
+}
+
+# Prompt the user for the VNet name and check if it exists
+$vnetName = Read-Host "Enter the name of the Virtual Network (VNet)"
+$vnet = Get-AzVirtualNetwork -ResourceGroupName $resourceGroupName -Name $vnetName -ErrorAction SilentlyContinue
+
+if ($null -eq $vnet) {
+    Write-Host "Virtual Network '$vnetName' does not exist. Creating it now..."
+    $vnetAddressPrefix = Read-Host "Enter the address space for the VNet (e.g., 10.0.0.0/16)"
+    $vnet = New-AzVirtualNetwork -Name $vnetName -ResourceGroupName $resourceGroupName -Location $resourceGroup.Location -AddressPrefix $vnetAddressPrefix
+    Write-Host "Virtual Network '$vnetName' created successfully."
+} else {
+    Write-Host "Virtual Network '$vnetName' already exists."
+}
+
+# Ask the user if they want to create subnets
+$createSubnets = Read-Host "Do you want to create subnets for the VNet? (yes/no)"
+if ($createSubnets -eq "yes") {
+    $subnetCount = Read-Host "How many subnets do you want to create?"
+    for ($i = 1; $i -le $subnetCount; $i++) {
+        $subnetName = Read-Host "Enter the name of subnet #$i"
+        $subnetAddressPrefix = Read-Host "Enter the address prefix for $subnetName (e.g., 10.0.1.0/24)"
+        $existingSubnet = $vnet.Subnets | Where-Object { $_.Name -eq $subnetName }
+
+        if ($null -eq $existingSubnet) {
+            Add-AzVirtualNetworkSubnetConfig -Name $subnetName -AddressPrefix $subnetAddressPrefix -VirtualNetwork $vnet
+            Write-Host "Subnet '$subnetName' added to the VNet."
+        } else {
+            Write-Host "Subnet '$subnetName' already exists in the VNet."
+        }
+    }
+
+    # Apply the changes to the VNet
+    Set-AzVirtualNetwork -VirtualNetwork $vnet
+    Write-Host "Subnets created and applied to the VNet."
+} else {
+    Write-Host "No subnets will be created."
+}
+
+Write-Host "Script execution completed."
 
