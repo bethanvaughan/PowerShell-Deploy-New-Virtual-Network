@@ -1,6 +1,5 @@
-# Interactive script to create an Azure Virtual Network (VNet) with optional subnets
-
 # Prompt the user for the resource group name and check if it exists
+
 $resourceGroupName = Read-Host "Enter the name of the Resource Group"
 $resourceGroup = Get-AzResourceGroup -Name $resourceGroupName -ErrorAction SilentlyContinue
 
@@ -43,7 +42,7 @@ if ($createSubnets -eq "yes") {
         }
     }
 
-    # Apply the changes to the VNet
+    # Apply the changes to the VNet using a funky SET
     Set-AzVirtualNetwork -VirtualNetwork $vnet
     Write-Host "Subnets created and applied to the VNet."
 } else {
