@@ -26,23 +26,21 @@ if ($null -eq $vnet) {
 }
 
 # Ask the user if they want to create subnets
+
 $createSubnets = Read-Host "Do you want to create subnets for the VNet? (yes/no)"
+
+#use a funky for loop to loop through all the subnets they want to create 
+
 if ($createSubnets -eq "yes") {
     $subnetCount = Read-Host "How many subnets do you want to create?"
     for ($i = 1; $i -le $subnetCount; $i++) {
         $subnetName = Read-Host "Enter the name of subnet #$i"
         $subnetAddressPrefix = Read-Host "Enter the address prefix for $subnetName (e.g., 10.0.1.0/24)"
-        $existingSubnet = $vnet.Subnets | Where-Object { $_.Name -eq $subnetName }
-
-        if ($null -eq $existingSubnet) {
-            Add-AzVirtualNetworkSubnetConfig -Name $subnetName -AddressPrefix $subnetAddressPrefix -VirtualNetwork $vnet
-            Write-Host "Subnet '$subnetName' added to the VNet."
-        } else {
-            Write-Host "Subnet '$subnetName' already exists in the VNet."
-        }
+        Add-AzVirtualNetworkSubnetConfig -Name $subnetName -AddressPrefix $subnetAddressPrefix -VirtualNetwork $vnet
+        Write-Host "Subnet '$subnetName' added to the VNet."
     }
 
-    # Apply the changes to the VNet using a funky SET
+    # Apply the changes to the VNet
     Set-AzVirtualNetwork -VirtualNetwork $vnet
     Write-Host "Subnets created and applied to the VNet."
 } else {
@@ -50,4 +48,8 @@ if ($createSubnets -eq "yes") {
 }
 
 Write-Host "Script execution completed."
+
+
+
+
 
